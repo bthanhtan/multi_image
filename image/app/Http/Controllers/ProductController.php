@@ -38,6 +38,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+
         $rule= [
             "name" => "required",
             "price" => "required",
@@ -49,16 +50,14 @@ class ProductController extends Controller
            "price" => $data_request['price'],
         ];
         $data_images = $data_request['file']['image'];
-
         
-         // dd($data_images);
         if ($product = Product::create($data_product)) {
             foreach ($data_images as $key => $value) {
-            $data_images = [
-               "src" => $value,
-            ];
-            $product->images()->create($data_images);
-        }
+                $data_image = [
+                   "src" => $value['src'],
+                ];
+                $product->images()->create($data_image);
+            }
         }
         // return redirect()->route('admin.product_index');
     }
@@ -95,7 +94,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-
+        // dd($request->all());
         $data_images = $request['file']['image'];
         $rule= [
             "name" => "required",
@@ -104,15 +103,40 @@ class ProductController extends Controller
         $product = Product::find($id);
         if ($product->update($request->all())) {
             foreach ($data_images as $key => $value) {
+                if (sizeof($value) == 2)
+                  {
+                    $id_img = $value['id'];
+                    $src_img_new = $value['src'];
+                    $img_old = Image::find($id_img);
+                    $src_img_old = $img_old->src;
+                    if ($src_img_new != $src_img_old) {
+                        $img_old->update(['src' => $src_img_new ]);
+                        File::delete($src_img_old);
+                    }
+                  }
+                elseif (sizeof($value) == 1)
+                  {
+                      $data_image = [
+                           "src" => $value['src'],
+                        ];
+                        $product->images()->create($data_image);
+                  }
+                
+            }
+        }
+
+        /*if ($product->update($request->all())) {
+            foreach ($data_images as $key => $value) {
                 $id_img = $value['id'];
                 $src_img_new = $value['src'];
                 $img_old = Image::find($id_img);
                 $src_img_old = $img_old->src;
-                if ($img_old->update(['src' => $src_img_new ])) {
+                if ($src_img_new != $src_img_old) {
+                    $img_old->update(['src' => $src_img_new ]);
                     File::delete($src_img_old);
-                };
+                }
             }
-        }
+        }*/
         return redirect()->route('admin.product_index');
     }
 
@@ -157,6 +181,11 @@ class ProductController extends Controller
 
     public function delete_image($id)
     {
-        dd('delete_image');
+        $img_delete = Image::find($id);
+        $src_delete = $img_delete->src;
+        
+        if ($img_delete->delete()) {
+            File::delete($src_delete);
+        }
     }
 }

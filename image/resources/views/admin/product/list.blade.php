@@ -20,9 +20,10 @@
             <td>{{$product->name}}</td>
             <td>
               <?php 
+                $local_link = "http://localhost/Laravel/multi_image/image/public/";
                 $img_products = $product->images;
                 foreach($img_products as  $img_product){?>
-                  <img src="http://weblocal.win/{{$img_product->src}}" alt="">
+                  <img src="{{$local_link}}{{$img_product->src}}" alt="">
                <?php  } ?>              
             </td>
             <td>
